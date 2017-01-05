@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>游戏</title>
+	<link rel="stylesheet" href="css/reset.css">
+	<style>
+		.isDelete {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: rgba(0, 0, 0, .8);
+			z-index: 2;
+		}
+		html, body {
+			overflow: hidden;
+			width: 100%;
+			height: 100%;
+		}
+		body {
+			background: url("images/setting.jpg") 0 0 no-repeat;
+			background-size: 100% 100%;
+		}
+		.wrap {
+			overflow: hidden;
+			position: relative;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+		}
+		#car {
+			position: fixed;
+			left: 0;
+			bottom: 0;
+			width: 2rem;
+			height: 2rem;
+			background: url("images/shop.png") 0 0 no-repeat;
+			background-size: contain;
+			text-align: center;
+		}
+		.others li {
+			position: absolute;
+			width: 1.5rem;
+			height: 1.5rem;
+		}
+		.others .goods1 {
+			background: url("images/goods_2.png") 0 0 no-repeat;
+			background-size: contain;
+		}
+		.others .goods2 {
+			background: url("images/goods_12.png") 0 0 no-repeat;
+			background-size: contain;
+		}
+		.others .goods3 {
+			background: url("images/goods_33.png") 0 0 no-repeat;
+			background-size: contain;
+		}
+		.others .goods4 {
+			background: url("images/goods_42.png") 0 0 no-repeat;
+			background-size: contain;
+		}
+		.others .boom {
+			background: url("images/boom_13.png") 0 0 no-repeat;
+			background-size: contain;
+		}
+		.scorebox {
+			color: #fff;
+		}
+		.showscore {
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			margin: auto;
+			opacity: 1;
+			font-size: .5rem;
+			color: #e94c1a;
+		}
+		.showup {
+			position: absolute;
+			top: -1rem;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			margin: auto;
+			transition: all 1s linear;
+			opacity: 0;
+		}
+		.totalScore {
+			float: right;
+			width: 5rem;
+			height: 1.75rem;
+			line-height: 1.75rem;
+			font-family: "DFPKan TingLiuW9";
+			font-size: .8rem;
+			text-align: left;
+			color: #8ed843;
+		}
+		.time {
+			float: left;
+			width: 1.9rem;
+			height: 1.25rem;
+			line-height: 1.75rem;
+			padding-left: 1.1rem;
+			background: url("images/reckon.png") 0 0 no-repeat;
+			background-size: contain;
+			font-size: .5rem;
+			text-align: left;
+			color: #8ed843;
+		}
+		.scorebox {
+			display: none;
+			position: fixed;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			margin: auto;
+			width: 6.75rem;
+			height: 8.75rem;
+			line-height: 8.75rem;
+			background: url("images/chall-lose.png") 0 0 no-repeat;
+			background-size: contain;
+			font-size: .8rem;
+			text-align: center;
+			color: #a1a2a2;
+		}
+	</style>
+</head>
+<body id="bodys">
+	<div class="isDelete" id="isDeletes">
+		<div class="scorebox" id="scoreboxs"></div>
+		<!-- <p class="starttime" id="starttimes"></p> -->
+	</div>
+	<div class="wrap" id="wraps">
+		<div id="car"></div>
+		<ul class="others" id="other"></ul>
+		<p class="totalScore" id="totalScores"></p>
+		<p class="time" id="times"></p>
+	</div>
+	<script src="js/flexible.js"></script>
+	<script>
+
+		/**
+		 * [GameStart 购物车移动]
+		 * @param {[type]} deletebox [分数弹出框]
+		 */
+		function GameStart(deletebox) {
+			var _this = this;
+
+			this.car = document.getElementById("car");
+			this.body = document.getElementById("bodys");
+			this.otehrsbox = document.getElementById("other");
+			this.totalscore = document.getElementById("totalScores");
+			this.timeEle = document.getElementById("times");
+			this.scorebox = document.getElementById("scoreboxs");
+
+			//遮罩层
+			this.deletebox = deletebox;
+
+			// 物品
+			this.goods = 0;
+
+			//分数
+			this.scoreEle = 0;
+
+			//创建物品计时器
+			this.createtimer = 0;
+
+			//物品计时器
+			this.timer = 0;
+
+			//倒计时计时器
+			this.downtimer = 0;
+
+			//分数计时器
+			this.scoretimer = 0;
+
+			//删除分数计时器
+			this.delscoretimer = 0;
+
+			//物品Y位置
+			this.posY = [];
+
+			//分数
+			this.allscore = 0;
+
+			//结束时间
+			this.timestarts = 15000;
+
+			this.startTime = new Date().getTime();
+
+			//设置倒计时的时间
+			this.timerofftime = 10;
+
+			// 创建物品的时间(毫秒)
+			this.createtime = 400;
+
+			//设置物品类型
+			this.goodsstyle = ["goods1", "goods2", "goods3", "goods4", "boom"];
+
+			//Y轴的初始位置
+			this.startY = window.innerHeight / 10;
+
+			//设置物品的分数
+			this.goodsstylejson = {
+				"goods1": "+2",
+				"goods2": "+3",
+				"goods3": "+5",
+				"goods4": "+10",
+				"boom": "-5"
+			};
+
+			//设置高度
+			this.body.style.height = window.innerHeight + "px";
+
+			document.removeEventListener("visibilitychange", function() {
+
+			}, false);
+
+			this.car.addEventListener("touchstart", function(event) {
+				event.preventDefault();
+				this.startValX = event.touches[0].clientX;
+				// this.startValY = event.touches[0].clientY;
+				this.startPosX = this.offsetLeft;
+				// this.startPosY = this.offsetTop;
+				_this.carMove();
+			}, false);
+
+			//设置初始分数
+			this.totalscore.innerHTML = this.allscore;
+
+			//设置初始时间
+			this.timeEle.innerHTML = this.timeoff;
+
+			this.downtimer = setInterval(function() {
+				_this.downFunction();
+			}, this.timerofftime);
+
+			this.createtimer = setInterval(function() {
+				_this.createGood();
+			}, this.createtime);
+
+			//物品持续运动
+			this.timer = setInterval(function() {
+				_this.goodsMove();
+			}, 16);
+
+			//分数运动
+			this.scoretimer = setInterval(function() {
+				_this.scoreMove();
+			}, 16);
+
+			//删除分数
+			this.delscoretimer = setInterval(function() {
+				_this.delScore();
+			}, 1000);
+		}
+		GameStart.prototype = {
+			//倒计时函数
+			downFunction: function() {
+				this.nowTime = new Date().getTime();
+				this.distanceTime = this.nowTime - this.startTime;
+				this.timeoff = this.timestarts - this.distanceTime;
+
+				//游戏结束
+				if(this.timeoff <= 0) {
+					this.timeoff = 0;
+					this.car.removeEventListener("touchmove", this.handler, false);
+					clearInterval(this.downtimer);
+					clearInterval(this.createtimer);
+					clearInterval(this.timer);
+					this.deletebox.style.display = "block";
+					this.scorebox.innerHTML = this.allscore;
+					this.scorebox.style.display = "block";
+				}
+				this.timeEle.innerHTML = (this.timeoff / 1000).toFixed(2) + "s";
+			},
+			//创建物品函数
+			createGood: function() {
+				this.newgood = document.createElement("li");
+
+				//创建物品
+				this.newgood.className = this.goodsstyle[Math.floor(Math.random() * 5)];
+
+				if(this.goods[0]) {
+					this.otehrsbox.insertBefore(this.newgood, this.goods[0]);
+				} else {
+					//添加物品
+					this.otehrsbox.appendChild(this.newgood);
+				}
+
+				//获取物品
+				this.goods = document.getElementsByTagName("li");
+
+				//速度数值
+				this.childspeed1 = (window.innerHeight - this.newgood.offsetHeight) / 100;
+				this.childspeed2 = (window.innerHeight - this.newgood.offsetHeight) / 150;
+				this.childspeed3 = (window.innerHeight - this.newgood.offsetHeight) / 200;
+
+				//设置速度
+				this.speed = [this.childspeed1, this.childspeed2, this.childspeed3];
+
+				//设置物品的x坐标
+				this.newgood.style.left = (Math.random() * (window.innerWidth - this.newgood.offsetWidth) + 1) + "px";
+
+				//设置物品的初始y坐标
+				this.newgood.style.top = this.startY + "px";
+
+				//设置物品的初始速度
+				this.newgood.setAttribute("speed", this.speed[Math.floor(Math.random() * 3)]);
+
+				//设置物品的分数
+				this.newgood.setAttribute("score", this.goodsstylejson[this.newgood.className]);
+			},
+			//控制购物车移动
+			carMove: function() {
+				this.handler = function(event) {
+					event.preventDefault();
+					this.endValX = event.touches[0].clientX;
+					this.endValY = event.touches[0].clientY;
+					this.overX = this.endValX - this.startValX + this.startPosX;
+					// this.overY = this.endValY - this.startValY + this.startPosY
+					if(this.overX <= 0) {
+						this.overX = 0;
+					}
+					if(this.overX >= window.innerWidth - this.offsetWidth) {
+						this.overX = (window.innerWidth - this.offsetWidth);
+					}
+					// if(this.overY <= 0) {
+					// 	this.overY = 0;
+					// }
+					// if(this.overY >= window.innerHeight - this.offsetHeight) {
+					// 	this.overY = (window.innerHeight - this.offsetHeight);
+					// }
+					this.style.left = (this.overX) + "px";
+					// this.style.top = (this.overY) + "px";
+					// console.log(this.style.left);
+				}
+				this.car.addEventListener("touchmove", this.handler, false);
+			},
+			//物品移动
+			goodsMove: function() {
+
+				//设置物品的y坐标
+				for(var i = this.goods.length - 1; i >= 0; i--) {
+					this.posY[i] = this.goods[i].offsetTop;
+					this.posY[i] += parseInt(this.goods[i].getAttribute("speed"));
+					this.goods[i].style.top = this.posY[i] + "px";
+
+					//购物车碰撞检测
+					if((this.goods[i].offsetLeft + this.goods[i].offsetWidth) >= this.car.offsetLeft && this.goods[i].offsetLeft <= (this.car.offsetLeft + this.car.offsetWidth)) {
+						if((this.goods[i].offsetTop + this.goods[0].offsetHeight) >= this.car.offsetTop) {
+
+							//将物品定位到外面
+							this.goods[i].style.top = window.innerWidth + "px";
+							this.goods[i].style.left = window.innerHeight + "px";
+							this.allscore += parseInt(this.goods[i].getAttribute("score"));
+							if(this.allscore < 0) {
+								this.allscore = 0;
+							}
+
+							//弹出分数
+							this.showscore = document.createElement("span");
+							this.showscore.className = "showscore";
+							this.showscore.innerHTML = this.goods[i].getAttribute("score");
+							this.car.appendChild(this.showscore);
+						}
+					}
+
+					if(this.posY[i] >= (window.innerHeight)) {
+
+						//移除物品和分数
+						// this.goods[i].style.display = "none";
+						this.otehrsbox.removeChild(this.goods[i]);
+					}
+				}
+				this.totalscore.innerHTML = this.allscore;
+			},
+			//分数运动
+			scoreMove: function() {
+				this.scoreEle = this.car.getElementsByTagName("span");
+				for(var i = 0; i < this.scoreEle.length; i++) {
+					if(this.scoreEle[i].className != "showscore showup") {
+						this.scoreEle[i].className += " showup";
+					}
+				}
+			},
+			delScore: function() {
+				for(var i = 0; i < this.scoreEle.length; i++) {
+					if(this.scoreEle[i].className == "showscore showup") {
+						this.car.removeChild(this.scoreEle[i]);
+					}
+				}
+			}
+		}
+
+		setTimeout(function() {
+			this.isDeletes = document.getElementById("isDeletes");
+			this.isDeletes.style.display = "none";
+			new GameStart(this.isDeletes);
+		}, 3000);
+	</script>
+</body>
+</html>
