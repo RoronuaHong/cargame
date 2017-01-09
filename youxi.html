@@ -41,6 +41,10 @@
 			background-size: contain;
 			text-align: center;
 		}
+		.carmoves {
+			-webkit-transition: all .2s linear;
+			transition: all .2s linear;
+		}
 		.others li {
 			position: absolute;
 			width: 1.5rem;
@@ -218,18 +222,21 @@
 			//设置高度
 			this.body.style.height = window.innerHeight + "px";
 
-			document.removeEventListener("visibilitychange", function() {
-
+			this.body.addEventListener("touchstart", function(event) {
+				if(_this.timeoff > 0) {
+					_this.bodyMove();
+				}
 			}, false);
+			this.carMove();
 
-			this.car.addEventListener("touchstart", function(event) {
-				event.preventDefault();
-				this.startValX = event.touches[0].clientX;
-				// this.startValY = event.touches[0].clientY;
-				this.startPosX = this.offsetLeft;
-				// this.startPosY = this.offsetTop;
-				_this.carMove();
-			}, false);
+			// this.car.addEventListener("touchstart", function(event) {
+			// 	event.preventDefault();
+			// 	this.startValX = event.touches[0].clientX;
+			// 	// this.startValY = event.touches[0].clientY;
+			// 	this.startPosX = this.offsetLeft;
+			// 	// this.startPosY = this.offsetTop;
+			// 	_this.carMove();
+			// }, false);
 
 			//设置初始分数
 			this.totalscore.innerHTML = this.allscore;
@@ -270,7 +277,7 @@
 				//游戏结束
 				if(this.timeoff <= 0) {
 					this.timeoff = 0;
-					this.car.removeEventListener("touchmove", this.handler, false);
+					this.body.removeEventListener("touchmove", this.handler, false);
 					clearInterval(this.downtimer);
 					clearInterval(this.createtimer);
 					clearInterval(this.timer);
@@ -317,31 +324,60 @@
 				//设置物品的分数
 				this.newgood.setAttribute("score", this.goodsstylejson[this.newgood.className]);
 			},
+			//定位初始购物车移动
+			bodyMove: function() {
+				var news_this = this;
+
+				event.preventDefault();
+				if(this.car.className != "carmoves") {
+					this.car.className += "carmoves";
+				}
+				this.nowValX = event.touches[0].clientX - this.car.offsetWidth / 2 + "px";
+				this.car.style.left = this.nowValX ;
+
+				// this.body.addEventListener("touchend", function(event) {
+				// 	news_this.nowValX = news_this.car.offsetLeft;
+				// }, false);
+			},
 			//控制购物车移动
 			carMove: function() {
+				// this.handler = function(event) {
+				// 	event.preventDefault();
+				// 	this.className = "";
+
+				// 	this.endValX = event.touches[0].clientX;
+				// 	this.endValY = event.touches[0].clientY;
+				// 	this.overX = this.endValX - this.startValX + this.startPosX;
+				// 	// this.overY = this.endValY - this.startValY + this.startPosY
+				// 	if(this.overX <= 0) {
+				// 		this.overX = 0;
+				// 	}
+				// 	if(this.overX >= window.innerWidth - this.offsetWidth) {
+				// 		this.overX = (window.innerWidth - this.offsetWidth);
+				// 	}
+				// 	// if(this.overY <= 0) {
+				// 	// 	this.overY = 0;
+				// 	// }
+				// 	// if(this.overY >= window.innerHeight - this.offsetHeight) {
+				// 	// 	this.overY = (window.innerHeight - this.offsetHeight);
+				// 	// }
+				// 	this.style.left = (this.overX) + "px";
+				// 	// this.style.top = (this.overY) + "px";
+				// 	// console.log(this.style.left);
+				// }
+				// this.car.addEventListener("touchmove", this.handler, false);
+				var new_this = this;
+
 				this.handler = function(event) {
-					event.preventDefault();
 					this.endValX = event.touches[0].clientX;
-					this.endValY = event.touches[0].clientY;
-					this.overX = this.endValX - this.startValX + this.startPosX;
-					// this.overY = this.endValY - this.startValY + this.startPosY
-					if(this.overX <= 0) {
-						this.overX = 0;
+					event.preventDefault();
+					console.log(new_this.car.offsetLeft + new_this.car.offsetWidth / 2, this.endValX)
+					if(this.endValX >= new_this.car.offsetLeft && this.endValX <= new_this.car.offsetLeft + new_this.car.offsetWidth) {
+						new_this.car.className = "";
 					}
-					if(this.overX >= window.innerWidth - this.offsetWidth) {
-						this.overX = (window.innerWidth - this.offsetWidth);
-					}
-					// if(this.overY <= 0) {
-					// 	this.overY = 0;
-					// }
-					// if(this.overY >= window.innerHeight - this.offsetHeight) {
-					// 	this.overY = (window.innerHeight - this.offsetHeight);
-					// }
-					this.style.left = (this.overX) + "px";
-					// this.style.top = (this.overY) + "px";
-					// console.log(this.style.left);
+					new_this.car.style.left = this.endValX - new_this.car.offsetWidth / 2 + "px";
 				}
-				this.car.addEventListener("touchmove", this.handler, false);
+				this.body.addEventListener("touchmove", this.handler, false);
 			},
 			//物品移动
 			goodsMove: function() {
